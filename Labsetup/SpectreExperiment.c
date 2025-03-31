@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <stdint.h>
 
-#define CACHE_HIT_THRESHOLD (80)
+#define CACHE_HIT_THRESHOLD (100)
 #define DELTA 1024
 
 int size = 10;

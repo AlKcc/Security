@@ -10,7 +10,7 @@ uint8_t buffer[10] = {0,1,2,3,4,5,6,7,8,9};
 char    *secret    = "Some Secret Value";   
 uint8_t array[256*4096];
 
-#define CACHE_HIT_THRESHOLD (80)
+#define CACHE_HIT_THRESHOLD (100)
 #define DELTA 1024
 
 // Sandbox Function
